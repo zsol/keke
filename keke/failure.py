@@ -10,7 +10,13 @@ import time
 from functools import partial, wraps
 from pathlib import Path
 from types import TracebackType
-from typing import Callable, Optional, ParamSpec, Type, TypeVar
+from typing import Callable, Optional, Type, TypeVar
+
+try:
+    from typing import ParamSpec
+except ImportError:  # <3.10 compat
+    from typing import TypeVar as ParamSpec  # type: ignore[assignment]
+
 
 from keke import get_tracer, TraceOutput
 
@@ -65,7 +71,9 @@ class TraceOnFailure:
                 LOG.exception("While saving for %s", reason)
 
 
-def save_trace_on_failure(func: Callable[Param, RetType]) -> Callable[Param, RetType]:
+def save_trace_on_failure(
+    func: "Callable[Param, RetType]",
+) -> "Callable[Param, RetType]":
     """
     Decorator to store traces on disk.
 
@@ -73,7 +81,7 @@ def save_trace_on_failure(func: Callable[Param, RetType]) -> Callable[Param, Ret
     """
 
     @wraps(func)
-    def inner(*args: Param.args, **kwargs: Param.kwargs) -> RetType:
+    def inner(*args: "Param.args", **kwargs: "Param.kwargs") -> RetType:
         with TraceOnFailure(
             save_trace_on_failure.always_trace,  # type: ignore[attr-defined]
             save_trace_on_failure.path,  # type: ignore[attr-defined]
